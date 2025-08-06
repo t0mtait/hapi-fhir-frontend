@@ -11,6 +11,8 @@
     "format:check": "prettier . --check"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.4.0",
+    "auth0": "^4.28.0",
     "flowbite-react": "^0.12.4",
     "next": "^15.4.2",
     "react": "^19.1.0",

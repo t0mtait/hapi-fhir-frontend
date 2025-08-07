@@ -1,5 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
+## HAPI Fhir Frontend
 
 <img width="1860" height="827" alt="image" src="https://github.com/user-attachments/assets/669286c1-99da-4d3a-88fb-4fd29f08df17" />
 

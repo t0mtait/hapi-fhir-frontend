@@ -100,16 +100,16 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Patient Records
+                  User Records
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  View and manage patient information
+                  View and manage user accounts
                 </p>
               </div>
             </div>
             <div className="mt-4">
-              <Button className="w-full" color="blue">
-                View Patients
+              <Button className="w-full" color="blue" onClick={() => router.push('/users')}>
+                Manage Users
               </Button>
             </div>
           </Card>

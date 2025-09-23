@@ -2,7 +2,6 @@
 
 // create me a nextjs component that is a login form with email and password fields for Auth0 authentication
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Button, Card } from 'flowbite-react';
 

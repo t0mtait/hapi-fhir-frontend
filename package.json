@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
+    "@types/pg": "^8.15.5",
     "auth0": "^4.28.0",
     "flowbite-react": "^0.12.4",
     "next": "^15.4.2",
+    "pg": "^8.16.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

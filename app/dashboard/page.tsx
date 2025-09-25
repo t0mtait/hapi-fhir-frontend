@@ -160,7 +160,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="mt-4">
-              <Button className="w-full" color="purple">
+              <Button className="w-full" color="purple" onClick={() => router.push('/resources')}>
                 Browse Resources
               </Button>
             </div>

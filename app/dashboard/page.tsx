@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button, Card, Spinner } from 'flowbite-react';
+import { Button, Card, DarkThemeToggle, Spinner } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -64,11 +64,12 @@ export default function Dashboard() {
               </div>
               <Button 
                 onClick={handleLogout}
-                color="gray"
+                color="red"
                 size="sm"
               >
                 Logout
               </Button>
+              <DarkThemeToggle />
             </div>
           </div>
         </div>
@@ -87,7 +88,7 @@ export default function Dashboard() {
         </div>
 
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* Patient Records Card */}
           <Card>
             <div className="flex items-center">
@@ -103,7 +104,7 @@ export default function Dashboard() {
                   User Records
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  View and manage user accounts
+                  Manage user accounts
                 </p>
               </div>
             </div>
@@ -118,7 +119,7 @@ export default function Dashboard() {
           <Card>
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-green-500 text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-500 text-white">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
@@ -129,12 +130,12 @@ export default function Dashboard() {
                   Observations
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Medical observations and vitals
+                  Medical observations
                 </p>
               </div>
             </div>
             <div className="mt-4">
-              <Button className="w-full" color="green">
+              <Button className="w-full" color="red">
                 View Observations
               </Button>
             </div>
@@ -165,7 +166,35 @@ export default function Dashboard() {
               </Button>
             </div>
           </Card>
+
+          {/* Resources Card */}
+          <Card>
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-green-500 text-white">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  FHIR Resources
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Create a new FHIR resource
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <Button className="w-full" color="green" onClick={() => router.push('/createresource')}>
+                Create Resource
+              </Button>
+            </div>
+          </Card>
         </div>
+
+        
 
         {/* User Info Section */}
         <div className="mt-8">

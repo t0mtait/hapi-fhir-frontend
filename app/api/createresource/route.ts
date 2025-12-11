@@ -1,6 +1,4 @@
-import { format } from "path";
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
 
 export interface Resource {
     res_id: string;
@@ -29,5 +27,79 @@ export interface Resource {
     res_type: string;
     res_type_id : number;
     search_url_present: boolean;
-    res_ver: string;
+    res_ver: number;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const resource = await req.json(); // e.g. a valid Patient JSON
+
+    // Validate that resource has required FHIR fields
+    if (!resource.resourceType) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Invalid FHIR resource', 
+          details: 'Missing required field: resourceType' 
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log('Creating resource:', {
+      resourceType: resource.resourceType,
+      baseUrl: process.env.FHIR_BASE_URL,
+      resource: JSON.stringify(resource)
+    });
+
+    const fhirUrl = `${process.env.FHIR_BASE_URL}/${resource.resourceType}`;
+    
+    const resp = await fetch(fhirUrl, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/fhir+json',
+        'Accept': 'application/fhir+json'
+      },
+      body: JSON.stringify(resource),
+    });
+
+    const responseBody = await resp.text();
+
+    if (!resp.ok) {
+      console.error('FHIR server error:', {
+        status: resp.status,
+        statusText: resp.statusText,
+        body: responseBody,
+        url: fhirUrl
+      });
+
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Failed to create resource (${resp.status})`,
+          details: responseBody,
+          fhirUrl: fhirUrl
+        },
+        { status: resp.status }
+      );
+    }
+
+    const created = JSON.parse(responseBody);
+    return NextResponse.json(
+      { success: true, resource: created },
+      { status: 201 }
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error creating resource:', errorMessage);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Internal server error', 
+        details: errorMessage 
+      },
+      { status: 500 }
+    );
+  }
 }

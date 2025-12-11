@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Button, TextInput, Label, Checkbox, Dropdown, DropdownItem, Spinner} from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface Resource {
     res_id: string;
@@ -39,7 +40,6 @@ interface Resource {
 export default function CreateResource() {
     const { user, isAuthenticated, isLoading, logout} = useAuth0();
     const router = useRouter();
-    const [resources, setResources] = useState<Resource[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +50,43 @@ export default function CreateResource() {
             }
         })
     };
+
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const name = (document.getElementById('resource-name') as HTMLInputElement).value;
+             const medication = {
+                resourceType: 'Medication',
+                status: 'active',
+                code: {
+                    text: name,   // or use a proper coded value here
+                },
+                // add other fields from your form as needed
+            };
+            const response = await fetch('/api/createresource', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(medication),
+            });
+            const data = await response.json();
+            if (data.success) {
+                router.push('/resources');
+            } else {
+                setError(data.error || 'Failed to create resource');
+            }
+        } catch (error) {
+            setError('An unexpected error occurred');
+            setLoading(false);
+            console.log(error);
+            return;
+        }
+    };
+            
 
     if (isLoading) {
             return (
@@ -107,37 +144,15 @@ export default function CreateResource() {
             <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
 
                 <form className="flex max-w-md flex-col gap-4">
-                <div>
-                    <Dropdown label="Resource Type">
-                    <DropdownItem>Patient</DropdownItem>
-                    <DropdownItem>Observation</DropdownItem>
-                    <DropdownItem>Encounter</DropdownItem>
-                    <DropdownItem>Practitioner</DropdownItem>
-                    <DropdownItem>Medication</DropdownItem>
-                    <DropdownItem>AllergyIntolerance</DropdownItem>
-                    <DropdownItem>Condition</DropdownItem>
-                    <DropdownItem>Procedure</DropdownItem>
-                    <DropdownItem>Immunization</DropdownItem>
-                    <DropdownItem>DiagnosticReport</DropdownItem>
-                    </Dropdown>
-                </div>
-                <div>
-                    <div className="mb-2 block">
-                    <Label htmlFor="email1">Your email</Label>
+                    <div> 
+                        <TextInput
+                            id="resource-name"
+                            placeholder="Enter Supplement Name"
+                            required={true}
+                        />
                     </div>
-                    <TextInput id="email1" type="email" placeholder="name@flowbite.com" required />
-                </div>
-                <div>
-                    <div className="mb-2 block">
-                    <Label htmlFor="password1">Your password</Label>
-                    </div>
-                    <TextInput id="password1" type="password" required />
-                </div>
-                <div className="flex items-center gap-2">
-                    <Checkbox id="remember" />
-                    <Label htmlFor="remember">Remember me</Label>
-                </div>
-                <Button type="submit">Submit</Button>
+                    
+                    <Button type="submit" onClick={handleClick}>Submit</Button>
                 </form>
             </main>
     </div>

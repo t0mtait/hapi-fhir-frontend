@@ -62,7 +62,7 @@ export default function CreateResource() {
                 resourceType: 'Medication',
                 status: 'active',
                 code: {
-                    text: name,   // or use a proper coded value here
+                    text: name,   // supplement name
                 },
                 // add other fields from your form as needed
             };

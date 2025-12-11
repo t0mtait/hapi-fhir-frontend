@@ -32,7 +32,8 @@ export interface Resource {
 
 export async function POST(req: NextRequest) {
   try {
-    const resource = await req.json(); // e.g. a valid Patient JSON
+    const resource = await req.json();
+    
 
     // Validate that resource has required FHIR fields
     if (!resource.resourceType) {

@@ -7,37 +7,15 @@ import { useEffect, useState } from 'react';
 
 
 interface Resource {
-    res_id: string;
-    partition_id: string | null;
+    id: string;
+    status: string;
     res_deleted_at: string | null;
-    res_version: number;
-    has_tags: boolean;
-    res_published: string;
-    res_updated: string;
-    fhir_id: string;
-    sp_has_links: boolean;
-    hash_sha256: string;
-    sp_index_status: number;
-    res_language: string | null;
-    sp_cmpstr_uniq_present: boolean;
-    sp_cmptoks_present: boolean;
-    sp_coords_present: boolean;
-    sp_date_present: boolean;
-    sp_number_present: boolean;
-    sp_quantity_nrml_present: boolean;
-    sp_quantity_present: boolean;
-    sp_string_present: boolean;
-    sp_token_present: boolean;
-    sp_uri_present: boolean;
-    partition_date: string | null;
-    res_type: string;
-    res_type_id : number;
-    search_url_present: boolean;
-    res_ver: string;
     code: {
         text:  string;
     };
-
+    meta: {
+        lastUpdated: string;
+    }
 }
 
 export default function Resources() {
@@ -59,6 +37,34 @@ export default function Resources() {
         }
     }, [isAuthenticated]);
 
+    const handleDelete = async (resourceId: string) => {
+        if (!confirm('Are you sure you want to delete this resource?')) {
+            return;
+        }
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await fetch('/api/deleteresource', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ resourceType: 'Medication', id: resourceId }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setResources((prevResources) =>
+                    prevResources.filter((res) => res.id !== resourceId)
+                );
+            } else {
+                setError(data.error || 'Failed to delete resource');
+            }
+        } catch (error) {
+            setError('Failed to delete resource');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchResources = async () => {
         try { 
@@ -78,11 +84,14 @@ export default function Resources() {
         }
     };
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        const options: Intl.DateTimeFormatOptions = {
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
-        });
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        };
+        return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
     const handleLogout = () => {
@@ -172,19 +181,19 @@ export default function Resources() {
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                                         >
-                                            resource id
+                                            ID
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                                         >
-                                            fhir id
+                                            Name
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                                         >
-                                            resource type
+                                            Last updated
                                         </th>
                                         <th
                                             scope="col"
@@ -196,7 +205,7 @@ export default function Resources() {
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                                         >
-                                            updated
+                                            Action
                                         </th>
                                     </tr>
                                 </thead>
@@ -209,22 +218,38 @@ export default function Resources() {
                                         </tr>
                                     ) : (
                                         resources.map((resourceData) => (
-                                            <tr key={resourceData.res_id}>
+                                            <tr key={resourceData.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                    {resourceData.res_id}
+                                                    {resourceData.id}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                    {resourceData.fhir_id}
+                                                    {resourceData.code.text}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                    {resourceData.res_type}
+                                                    {formatDate(resourceData.meta.lastUpdated)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                    {formatDate(resourceData.res_published)}
+                                                    {resourceData.status}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                    {formatDate(resourceData.res_updated)}
-                                                </td>
+                                                    <a
+                                                        href={`http://localhost:8080/fhir/Medication/${resourceData.id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-600"
+                                                    >
+                                                        View
+                                                    </a>
+                                                    {' | '}
+                                                    <a
+                                                        onClick={() => handleDelete(resourceData.id)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-red-600 hover:text-blue-900 dark:hover:text-blue-600"
+                                                    >
+                                                        Delete
+                                                    </a>
+                                                </td>                                              
                                             </tr>
                                         ))
                                     )}

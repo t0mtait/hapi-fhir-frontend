@@ -1,6 +1,4 @@
-import { format } from "path";
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
 
 
 export interface Resource {
@@ -34,27 +32,37 @@ export interface Resource {
 }
 
 export async function GET(request: NextRequest) {
-    try {
-        const result = await query(`
-            SELECT * from hfj_resource`);
-        const resources: Resource[] = result.rows;
+  try {
+    const resp = await fetch(`${process.env.FHIR_BASE_URL}/Medication?_count=50`, {
+      headers: { Accept: 'application/fhir+json' },
+    });
 
-        return NextResponse.json({
-            success: true,
-            resources,
-            count: resources.length
-        });
-    } catch (error) {
-        console.error('Error fetching resources:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
-
-        return NextResponse.json(
-            {
-                success: false,
-                error: 'Failed to fetch resources',
-                details: errorMessage
-            },
-            { status: 500 }
-        );
+    if (!resp.ok) {
+      const body = await resp.text();
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch medications', details: body },
+        { status: resp.status },
+      );
     }
+
+    const bundle = await resp.json();
+    const meds = (bundle.entry ?? []).map((e: any) => e.resource);
+
+    return NextResponse.json({
+      success: true,
+      resources: meds,
+      count: meds.length,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch medications',
+        details: errorMessage,
+      },
+      { status: 500 },
+    );
+  }
 }
+

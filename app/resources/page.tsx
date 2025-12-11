@@ -34,6 +34,9 @@ interface Resource {
     res_type_id : number;
     search_url_present: boolean;
     res_ver: string;
+    code: {
+        text:  string;
+    };
 
 }
 

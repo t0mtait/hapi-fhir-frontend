@@ -13,6 +13,49 @@ export interface User {
 }
 
 export async function GET(request: NextRequest) {
+  // param for email filtering
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get('email');
+
+  if (email) {
+    try {
+      const result = await query(`
+        SELECT 
+          id,
+          username,
+          email,
+          auth0_user_id,
+          roles,
+          profile_info,
+          created_at,
+          updated_at
+        FROM app_user
+        WHERE email = $1
+        ORDER BY id
+      `, [email]);
+      
+      const users: User[] = result.rows;
+      return NextResponse.json({
+        success: true,
+        users,
+        count: users.length
+      });
+
+    } catch (error) {
+      console.error('Error fetching user by email:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+      
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Failed to fetch user by email',
+          details: errorMessage
+        },
+        { status: 500 }
+      );
+    }
+  }
   try {
     // Query to fetch all users from the database
     // Adjust the table name and column names according to your database schema

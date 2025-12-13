@@ -2,7 +2,7 @@
 
 import { Auth0Provider } from '@auth0/auth0-react';
 import { ReactNode } from 'react';
-// import { UserSyncProvider } from './UserSyncProvider';
+import { UserSyncProvider } from './UserSyncProvider';
 
 interface Auth0ProviderWrapperProps {
   children: ReactNode;
@@ -50,10 +50,9 @@ export default function Auth0ProviderWrapper({ children }: Auth0ProviderWrapperP
       }}
       cacheLocation="localstorage"
     >
-      {/* <UserSyncProvider>
+      <UserSyncProvider>
         {children}
-      </UserSyncProvider> */}
-      {children}
+      </UserSyncProvider>
     </Auth0Provider>
   );
 }

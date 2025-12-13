@@ -2,7 +2,6 @@
 
 A modern Next.js frontend application for managing FHIR resources with Auth0 authentication and PostgreSQL integration.
 
-<img width="1860" height="827" alt="image" src="https://github.com/user-attachments/assets/669286c1-99da-4d3a-88fb-4fd29f08df17" />
 
 ## 🚀 Features
 
@@ -239,71 +238,53 @@ Deletes a FHIR resource by ID.
 3. Enter valid FHIR JSON
 4. Submit and verify in "Resources" page
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### Common Issues
+| Issue | Solution |
+|-------|----------|
+| **"Auth0 Configuration Missing"** | Verify `.env.local` has `NEXT_PUBLIC_AUTH0_DOMAIN` and `NEXT_PUBLIC_AUTH0_CLIENT_ID`. Restart dev server. |
+| **Database Connection Errors** | Check PostgreSQL is running on port 5432. Verify credentials in `.env.local`. Test with: `psql -h localhost -U your-user -d your-database` |
+| **User Sync Failures** | Check browser console for errors. Verify `/api/users/sync` is accessible. Ensure `app_user` table exists. |
+| **FHIR 400 Bad Request** | Validate FHIR JSON at [hl7.org/fhir](https://www.hl7.org/fhir/validation.html). Check `FHIR_BASE_URL` is correct. Review server logs for details. |
+| **JSON Column Errors** | Ensure roles/profile_info are stored as JSON strings: `JSON.stringify(['user'])` |
 
-1. **"Auth0 Configuration Missing" Error**
-   - Ensure `.env.local` has correct Auth0 variables
-   - Restart development server after adding variables
-
-2. **Database Connection Errors**
-   - Verify PostgreSQL is running
-   - Check database credentials in `.env.local`
-   - Test connection with: `npm run test-db` (if available)
-
-3. **User Sync Failures**
-   - Check browser console for error messages
-   - Verify `/api/users/sync` endpoint is accessible
-   - Check database table exists and has correct structure
-
-### Debugging
-
-Enable debug logging by adding to your environment:
+### Enable Debug Logging
 ```bash
 DEBUG=true
 NODE_ENV=development
 ```
 
-This will show detailed logs for:
-- Auth0 authentication events
-- Database queries
-- User sync operations
+## 🔒 Security
 
-## Security Considerations
+- ✅ **Environment variables**: Never commit `.env.local`
+- ✅ **Database pooling**: Connection pool limits set to 20
+- ✅ **Parameterized queries**: SQL injection protection via `$1`, `$2` syntax
+- ✅ **Auth0 authentication**: Secure OAuth 2.0 flow
+- ⚠️ **TODO**: Add rate limiting to API routes
+- ⚠️ **TODO**: Implement role-based access control
 
-1. **Environment Variables**: Never commit `.env.local` to version control
-2. **Database Access**: Use connection pooling and proper user permissions
-3. **API Security**: Consider adding rate limiting to sync endpoint
-4. **Data Validation**: The system validates required fields before database insertion
+## 📚 Additional Resources
 
-## Next Steps
+- [HAPI FHIR Server Setup](https://github.com/t0mtait/hapi-fhir-server) - Backend PostgreSQL + FHIR server
+- [Auth0 Setup Guide](./AUTH0_SETUP.md) - Detailed Auth0 configuration
+- [FHIR R4 Specification](https://www.hl7.org/fhir/) - FHIR resource documentation
+- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
+- [Flowbite React](https://flowbite-react.com/) - UI component library
 
-After setting up basic user registration, you might want to:
+## 🤝 Contributing
 
-1. **Add role-based authorization**
-2. **Implement user profile management**
-3. **Set up user preferences/settings**
-4. **Add audit logging for user actions**
-5. **Implement user deletion/deactivation**
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📄 License
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This project is part of an academic assignment for healthcare informatics.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 👤 Author
 
-## Learn More
+**Tom Tait**
+- GitHub: [@t0mtait](https://github.com/t0mtait)
+- Repository: [hapi-fhir-frontend](https://github.com/t0mtait/hapi-fhir-frontend)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Note**: This application requires a running HAPI FHIR server. See the [hapi-fhir-server](https://github.com/t0mtait/hapi-fhir-server) repository for setup instructions.

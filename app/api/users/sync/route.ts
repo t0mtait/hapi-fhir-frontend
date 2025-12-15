@@ -57,22 +57,72 @@ export async function POST(request: NextRequest) {
 
     const roles = ['user']; // Array of roles for JSON column
 
+    // make a new FHIR Patient for this user
+    const fhirPatient = {
+      resourceType: "Patient",
+      name: [
+        {
+          use: "official",
+          family: username,
+          given: [username]
+        }
+      ],
+      telecom: [
+        {
+          system: "email",
+          value: email,
+          use: "home"
+        }
+      ]
+    };
+
+    const fhirResp = await fetch(`${process.env.FHIR_BASE_URL}/Patient`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/fhir+json',
+        'Accept': 'application/fhir+json'
+      },
+      body: JSON.stringify(fhirPatient),
+    });
+
+    if (!fhirResp.ok) {
+      const fhirBody = await fhirResp.text();
+      console.error('Error creating FHIR Patient:', {
+        status: fhirResp.status,
+        body: fhirBody
+      });
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Failed to create FHIR Patient (${fhirResp.status})`,
+          details: fhirBody
+        },
+        { status: 500 }
+      );
+    }
+
+    const fhirCreated = await fhirResp.json();
+    const fhirPatientId = fhirCreated.id;
+    console.log('Created FHIR Patient with ID:', fhirPatientId);
+
     const insertResult = await query(`
       INSERT INTO app_user (
-        username, 
+        username,
         email, 
         auth0_user_id, 
+        fhir_patient_id,
         roles, 
         profile_info, 
         created_at, 
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
       RETURNING *
     `, [
       username || name || email.split('@')[0], // Generate username from name or email if not provided
       email,
       auth0_id,
+      fhirPatientId,
       JSON.stringify(roles), // Convert to JSON string for PostgreSQL
       JSON.stringify(profile_info) // Convert to JSON string for PostgreSQL
     ]);

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 interface User {
     id: number;
+    fhir_patient_id: string;
     username: string;
     email: string;
     auth0_user_id: string;
@@ -156,6 +157,12 @@ export default function Users() {
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                                         >
+                                            FHIR ID
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                        >
                                             Username
                                         </th>
                                         <th
@@ -208,6 +215,9 @@ export default function Users() {
                                             <tr key={userData.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                     {userData.id}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    {userData.fhir_patient_id || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                     {userData.username}

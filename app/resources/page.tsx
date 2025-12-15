@@ -66,6 +66,10 @@ export default function Resources() {
         }
     };
 
+    function handleAdd(resourceId: string) {
+        router.push(`/stack/add?id=${resourceId}`);
+    }
+
     const fetchResources = async () => {
         try { 
             setLoading(true);
@@ -248,6 +252,15 @@ export default function Resources() {
                                                         className="text-red-600 hover:text-blue-900 dark:hover:text-blue-600"
                                                     >
                                                         Delete
+                                                    </a>
+                                                    {' | '}
+                                                    <a
+                                                        onClick={() => handleAdd(resourceData.id)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-green-300 hover:text-blue-900 dark:hover:text-blue-600"
+                                                    >
+                                                        Add to Stack
                                                     </a>
                                                 </td>                                              
                                             </tr>

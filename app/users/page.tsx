@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button, Card, Spinner, Alert } from 'flowbite-react';
+import { Button, Card, Spinner, Alert, DarkThemeToggle } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -90,7 +90,7 @@ export default function Users() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Header */}
             <header className="bg-white shadow dark:bg-gray-800">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between items-center">
                         <div className="flex items-center">
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -120,13 +120,14 @@ export default function Users() {
                             <Button color="gray" onClick={handleLogout}>
                                 Logout
                             </Button>
+                            <DarkThemeToggle />
                         </div>
                     </div>
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <main className="mx-auto max-w-2/3 px-4 sm:px-6 lg:px-8 py-8">
                 {error && (
                     <Alert color="failure" className="mb-6">
                         <span className="font-medium">Error!</span> {error}

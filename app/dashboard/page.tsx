@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Button, Card, DarkThemeToggle, Spinner } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Stack } from '../stack/page';
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading, logout } = useAuth0();
@@ -190,7 +191,7 @@ export default function Dashboard() {
                     Create Resource
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Create a new FHIR resource (Admin only)
+                    Create a new FHIR resource
                   </p>
                 </div>
               </div>
@@ -224,6 +225,7 @@ export default function Dashboard() {
             </div>
           </Card>
         </div>
+        <Stack />
       </main>
     </div>
   );

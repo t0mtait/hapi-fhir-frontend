@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button, Card, Spinner, Alert } from 'flowbite-react';
+import { Button, Card, Spinner, Alert, DarkThemeToggle } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -67,7 +67,25 @@ export default function Resources() {
     };
 
     function handleAdd(resourceId: string) {
-        router.push(`/stack/add?id=${resourceId}`);
+        if (isLoading) {
+            console.log("Auth still loading");
+            return;
+        }
+
+        if (!isAuthenticated || !user || !user.email) {
+            console.error("User not authenticated or missing email");
+            return;
+        }
+        const response = fetch(`/api/stack`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'id': resourceId,
+                'user_email': user.email
+            },
+        });
+        console.log('Add to Stack response:', response);
+
     }
 
     const fetchResources = async () => {
@@ -154,6 +172,7 @@ export default function Resources() {
                             <Button color="gray" onClick={handleLogout}>
                                 Logout
                             </Button>
+                            <DarkThemeToggle />
                         </div>
                     </div>
                 </div>

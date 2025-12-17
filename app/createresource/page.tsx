@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button, TextInput, Label, Checkbox, Dropdown, DropdownItem, Spinner} from 'flowbite-react';
+import { Button, TextInput, Label, Checkbox, Dropdown, DropdownItem, Spinner, DarkThemeToggle} from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -136,6 +136,7 @@ export default function CreateResource() {
                             <Button color="gray" onClick={handleLogout}>
                                 Logout
                             </Button>
+                            <DarkThemeToggle />
                         </div>
                     </div>
                 </div>
@@ -145,6 +146,7 @@ export default function CreateResource() {
 
                 <form className="flex max-w-md flex-col gap-4">
                     <div> 
+                        <Label htmlFor="resource-name">Supplement</Label>
                         <TextInput
                             id="resource-name"
                             placeholder="Enter Supplement Name"
@@ -154,6 +156,7 @@ export default function CreateResource() {
                     
                     <Button type="submit" onClick={handleClick}>Submit</Button>
                 </form>
+                
             </main>
     </div>
   );

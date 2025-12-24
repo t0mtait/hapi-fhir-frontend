@@ -5,7 +5,7 @@ import { Button, Card, DarkThemeToggle, Spinner } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Stack } from '../stack/page';
-
+import MyNav from '../../components/nav';
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading, logout } = useAuth0();
   const router = useRouter();
@@ -72,39 +72,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow dark:bg-gray-800">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between items-center">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                FHIR Dashboard
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                {user?.picture && (
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src={user.picture}
-                    alt={user.name || 'User'}
-                  />
-                )}
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {user?.name || user?.email}
-                </span>
-              </div>
-              <Button 
-                onClick={handleLogout}
-                color="red"
-                size="sm"
-              >
-                Logout
-              </Button>
-              <DarkThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
+      < MyNav />
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -113,9 +81,6 @@ export default function Dashboard() {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Welcome back, {user?.given_name || user?.name?.split(' ')[0] || 'User'}!
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Manage your FHIR resources and healthcare data from your dashboard.
-          </p>
         </div>
 
 
@@ -206,25 +171,7 @@ export default function Dashboard() {
 
         
 
-        {/* User Info Section */}
-        <div className="mt-8">
-          <Card>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Account Information
-            </h3>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Email:</span> {user?.email}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">User ID:</span> {user?.sub}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Last Updated:</span> {user?.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'N/A'}
-              </p>
-            </div>
-          </Card>
-        </div>
+        
         <Stack />
       </main>
     </div>

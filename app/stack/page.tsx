@@ -17,8 +17,7 @@ interface MedicationStatement {
 
 }
 
-
-export function Stack() {
+export default function Stack() {
       const { user, isAuthenticated, isLoading, logout } = useAuth0();
       const router = useRouter();
       const [medicationStatements, setMedicationStatements] = useState<MedicationStatement[]>([]);

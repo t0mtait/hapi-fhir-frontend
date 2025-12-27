@@ -4,7 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Button, Card, DarkThemeToggle, Spinner } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Stack } from '../stack/page';
+import Stack from '../stack/page'; 
 import MyNav from '../../components/nav';
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading, logout } = useAuth0();

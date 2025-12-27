@@ -1,290 +1,105 @@
-# HAPI FHIR Frontend
+# Stack Tracker (HAPI FHIR Frontend)
 
-A modern Next.js frontend application for managing FHIR resources with Auth0 authentication and PostgreSQL integration.
+A Next.js app for authenticated management of FHIR medication data. Users sign in with Auth0, are mirrored into PostgreSQL and HAPI FHIR, and can browse medications, add them to a personal medication stack (creates MedicationStatements), or create/delete medications. The repo now ships with Docker Compose for a one-command spin-up of the entire stack (web + HAPI FHIR + Postgres).
 
+## Features
 
-## 🚀 Features
+- Auth0 sign-in with automatic user sync into PostgreSQL and a corresponding FHIR Patient
+- Medication browser (pulls Medications from HAPI FHIR) with delete and “Add to Stack” actions
+- Medication stack on the dashboard (MedicationStatements linked to the logged-in patient)
+- Admin-only user table (guarded via stored `roles` array) and resource creation UI
+- Dark/light ready UI built with Flowbite React + Tailwind CSS 4
+- Dockerized stack: Next.js app, HAPI FHIR server, and Postgres in one compose file
 
-- **FHIR Resource Management**: Create, view, and delete FHIR resources
-- **Auth0 Authentication**: Secure user authentication and authorization
-- **User Management**: View and manage application users
-- **PostgreSQL Integration**: Automatic user sync to database
-- **Dashboard**: Centralized view of resources and user data
-- **Responsive UI**: Built with Flowbite React and Tailwind CSS
+## Tech Stack
 
-## 📋 Tech Stack
+- Next.js 15 (App Router) • React 19 • TypeScript 5
+- Auth0 SPA SDK
+- PostgreSQL via `pg`
+- HAPI FHIR R4 server (hapiproject/hapi) with Postgres backing store
+- Tailwind CSS 4 + Flowbite React
+- ESLint + Prettier
 
-- **Framework**: Next.js 15.4.2 (App Router)
-- **Language**: TypeScript 5.8.3
-- **UI Library**: React 19.1.0
-- **Authentication**: Auth0
-- **Database**: PostgreSQL (via `pg` library)
-- **Styling**: Tailwind CSS 4.1.11 + Flowbite React
-- **Code Quality**: ESLint, Prettier
+## Prerequisites
 
-## 🛠️ Prerequisites
+- Node.js 18+ (for local dev)
+- Docker + Docker Compose (recommended path)
+- Auth0 application configured for SPA
 
-- Node.js 18+ 
-- PostgreSQL database (see [hapi-fhir-server](https://github.com/t0mtait/hapi-fhir-server) for containerized setup)
-- Auth0 account and application
-- HAPI FHIR server running
+## Run with Docker Compose (recommended)
 
-## ⚙️ Installation
-
-1. **Clone the repository**
+1. Create `.env.local` in the repo root. For the compose network, these defaults work:
    ```bash
-   git clone https://github.com/t0mtait/hapi-fhir-frontend.git
-   cd hapi-fhir-frontend
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory:
-   ```bash
-   # Auth0 Configuration
    NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
    NEXT_PUBLIC_AUTH0_CLIENT_ID=your-client-id
 
-   # PostgreSQL Configuration
+   DB_HOST=db
+   DB_PORT=5432
+   DB_NAME=hapi
+   DB_USER=admin
+   DB_PASSWORD=admin
+
+   FHIR_BASE_URL=http://fhir:8080/fhir
+   ```
+2. Start everything: `docker compose up --build`
+3. Open http://localhost:3000 and log in. HAPI FHIR is exposed on http://localhost:8080/fhir and Postgres on localhost:5432 (credentials above) if you want to inspect data.
+
+## Local Development (without containers)
+
+1. Install deps: `npm install`
+2. Create `.env.local` using your local services, e.g.:
+   ```bash
+   NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
+   NEXT_PUBLIC_AUTH0_CLIENT_ID=your-client-id
    DB_HOST=localhost
    DB_PORT=5432
-   DB_NAME=your-database-name
-   DB_USER=your-database-user
-   DB_PASSWORD=your-database-password
-
-   # FHIR Server Configuration
+   DB_NAME=hapi
+   DB_USER=admin
+   DB_PASSWORD=admin
    FHIR_BASE_URL=http://localhost:8080/fhir
    ```
+3. Run dev server: `npm run dev`
+4. Production build: `npm run build` then `npm start`
 
-4. **Initialize the database**
-   ```bash
-   psql -h localhost -p 5432 -U your-user -d your-database -f database/migration.sql
-   ```
+## App Anatomy
 
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+- Dashboard: shows welcome, cards for Users/Resources/Create (admin-gated), and the medication stack table
+- Resources: lists Medications from FHIR with view/delete/add-to-stack actions
+- Create Resource: simple Medication creator that posts to FHIR
+- Users: admin view of `app_user` records (email filter is supported via `?email=`)
+- Stack: renders MedicationStatements for the logged-in patient
 
-6. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+## API Surface
 
-## 📁 Project Structure
+- `GET /api/users` — list users; `?email=` filters by email and returns count
+- `POST /api/users` — creates a user, also creates a FHIR Patient; expects `username`, `email`, `auth0_id`, optional `roles`, `profile_info`
+- `POST /api/users/sync` — invoked by Auth0 login flow; upserts user and Patient with default roles `['user']`
+- `GET /api/resources` — fetches Medications (FHIR `Medication?_count=50`)
+- `POST /api/createresource` — create any FHIR resource; body must include `resourceType`
+- `DELETE /api/deleteresource` — delete FHIR resource; body `{ resourceType, id }`
+- `GET /api/medicationstatement` — list MedicationStatements (user stack view)
+- `POST /api/stack` — create a MedicationStatement tied to the current user (looks up `fhir_patient_id` via email header and references the selected Medication)
 
-```
-hapi-fhir-frontend/
-├── app/
-│   ├── api/
-│   │   ├── createresource/      # Create FHIR resources
-│   │   ├── deleteresource/      # Delete FHIR resources
-│   │   ├── resources/           # Fetch FHIR resources
-│   │   └── users/
-│   │       ├── route.ts         # User CRUD operations
-│   │       └── sync/            # Auth0 user sync
-│   ├── createresource/          # Resource creation UI
-│   ├── dashboard/               # Dashboard page
-│   ├── resources/               # Resources list page
-│   ├── users/                   # Users management page
-│   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Home page
-├── components/
-│   ├── Auth0ProviderWrapper.tsx # Auth0 provider setup
-│   ├── UserSyncProvider.tsx     # Auto user sync
-│   └── useUserSync.ts           # User sync hook
-├── lib/
-│   └── db.ts                    # PostgreSQL connection pool
-└── database/
-    └── migration.sql            # Database schema
-```
+## Notes on Roles and Auth
 
-## 🔑 Key Features Explained
+- Auth0 SPA SDK manages login; environment keys are required or the app renders a helpful setup screen
+- Admin-only UI depends on `roles` stored in `app_user`; the admin card appears when `roles` includes `admin`
 
-### Auth0 + PostgreSQL Integration
+## Troubleshooting
 
-The application automatically syncs authenticated users to PostgreSQL:
+- Missing Auth0 config: ensure `NEXT_PUBLIC_AUTH0_DOMAIN` and `NEXT_PUBLIC_AUTH0_CLIENT_ID` exist in `.env.local` and restart
+- FHIR errors: confirm `FHIR_BASE_URL` matches the running server (compose uses `http://fhir:8080/fhir`)
+- DB errors: verify Postgres is reachable with the same host/port/credentials as `.env.local`; in compose the service is `db`
 
-1. **User logs in via Auth0** → Auth0 handles authentication
-2. **UserSyncProvider detects login** → Triggers sync hook
-3. **POST to `/api/users/sync`** → Sends user data
-4. **Database update** → User created/updated in `app_user` table
+## Scripts
 
-**Key Components:**
-- `Auth0ProviderWrapper` - Auth0 configuration
-- `UserSyncProvider` - Auto-sync wrapper
-- `useUserSync` hook - Sync logic
-- `/api/users/sync` - Sync endpoint
+- `npm run dev` — Next.js dev server
+- `npm run build` — production build
+- `npm start` — run the standalone server output
+- `npm run lint` — ESLint
+- `npm run format` — Prettier write
+- `npm run format:check` — Prettier check
 
-### FHIR Resource Management
+## License
 
-Connect to your HAPI FHIR server to:
-- **Create resources** - POST FHIR-compliant JSON
-- **View resources** - Browse all stored resources
-- **Delete resources** - Remove resources by ID
-
-Resources are fetched directly from your FHIR server and displayed in a searchable table
-
-## 📊 Database Schema
-
-The `app_user` table stores synchronized Auth0 users:
-```sql
-CREATE TABLE app_user ( 
-    id SERIAL PRIMARY KEY, 
-    username varchar, 
-    email varchar UNIQUE NOT NULL, 
-    auth0_user_id varchar UNIQUE NOT NULL, 
-    roles json, 
-    profile_info json, 
-    created_at timestamp with time zone DEFAULT current_timestamp, 
-    updated_at timestamp with time zone DEFAULT current_timestamp
-);
-```
-
-Run the migration script to create this table:
-```bash
-psql -h localhost -p 5432 -U your-user -d your-database -f database/migration.sql
-```
-
-## 🔌 API Endpoints
-
-### User Management
-
-#### `POST /api/users/sync`
-Synchronizes Auth0 user data with PostgreSQL.
-
-**Request Body:**
-```json
-{
-  "auth0_id": "auth0|123456789",
-  "email": "user@example.com",
-  "username": "johndoe",
-  "name": "John Doe",
-  "picture": "https://example.com/avatar.jpg"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": { 
-    "id": 1,
-    "username": "johndoe",
-    "email": "user@example.com",
-    // ... other user fields
-  },
-  "message": "User created successfully",
-  "isNewUser": true
-}
-```
-
-#### `GET /api/users`
-Retrieves all users from the database.
-
-**Response:**
-```json
-{
-  "success": true,
-  "users": [...],
-  "count": 5
-}
-```
-
-#### `POST /api/users`
-Creates a new user manually.
-
-### FHIR Resource Management
-
-#### `GET /api/resources`
-Fetches all resources from FHIR server.
-
-#### `POST /api/createresource`
-Creates a new FHIR resource.
-
-**Request Body:** Valid FHIR resource JSON
-```json
-{
-  "resourceType": "Patient",
-  "name": [{"given": ["John"], "family": "Doe"}],
-  "birthDate": "1990-01-01"
-}
-```
-
-#### `DELETE /api/deleteresource`
-Deletes a FHIR resource by ID.
-
-**Query Parameters:** `?resourceType=Patient&id=123`
-
-## 🧪 Testing
-
-### Test User Sync
-1. Start the dev server: `npm run dev`
-2. Navigate to [http://localhost:3000](http://localhost:3000)
-3. Click "Login" and authenticate via Auth0
-4. Check browser console for sync messages
-5. Verify in database:
-   ```sql
-   SELECT id, username, email, created_at 
-   FROM app_user 
-   ORDER BY created_at DESC;
-   ```
-
-### Test FHIR Integration
-1. Ensure your FHIR server is running
-2. Navigate to "Create Resource" page
-3. Enter valid FHIR JSON
-4. Submit and verify in "Resources" page
-
-## 🐛 Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| **"Auth0 Configuration Missing"** | Verify `.env.local` has `NEXT_PUBLIC_AUTH0_DOMAIN` and `NEXT_PUBLIC_AUTH0_CLIENT_ID`. Restart dev server. |
-| **Database Connection Errors** | Check PostgreSQL is running on port 5432. Verify credentials in `.env.local`. Test with: `psql -h localhost -U your-user -d your-database` |
-| **User Sync Failures** | Check browser console for errors. Verify `/api/users/sync` is accessible. Ensure `app_user` table exists. |
-| **FHIR 400 Bad Request** | Validate FHIR JSON at [hl7.org/fhir](https://www.hl7.org/fhir/validation.html). Check `FHIR_BASE_URL` is correct. Review server logs for details. |
-| **JSON Column Errors** | Ensure roles/profile_info are stored as JSON strings: `JSON.stringify(['user'])` |
-
-### Enable Debug Logging
-```bash
-DEBUG=true
-NODE_ENV=development
-```
-
-## 🔒 Security
-
-- ✅ **Environment variables**: Never commit `.env.local`
-- ✅ **Database pooling**: Connection pool limits set to 20
-- ✅ **Parameterized queries**: SQL injection protection via `$1`, `$2` syntax
-- ✅ **Auth0 authentication**: Secure OAuth 2.0 flow
-- ⚠️ **TODO**: Add rate limiting to API routes
-- ⚠️ **TODO**: Implement role-based access control
-
-## 📚 Additional Resources
-
-- [HAPI FHIR Server Setup](https://github.com/t0mtait/hapi-fhir-server) - Backend PostgreSQL + FHIR server
-- [Auth0 Setup Guide](./AUTH0_SETUP.md) - Detailed Auth0 configuration
-- [FHIR R4 Specification](https://www.hl7.org/fhir/) - FHIR resource documentation
-- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
-- [Flowbite React](https://flowbite-react.com/) - UI component library
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is part of an academic assignment for healthcare informatics.
-
-## 👤 Author
-
-**Tom Tait**
-- GitHub: [@t0mtait](https://github.com/t0mtait)
-- Repository: [hapi-fhir-frontend](https://github.com/t0mtait/hapi-fhir-frontend)
-
----
-
-**Note**: This application requires a running HAPI FHIR server. See the [hapi-fhir-server](https://github.com/t0mtait/hapi-fhir-server) repository for setup instructions.
+Academic assignment; see repository for details.

@@ -1,0 +1,23 @@
+server:
+  address: 0.0.0.0
+  port: 8080
+
+fhir:
+  version: R4
+  basePath: /fhir
+  enableDefaultResponseEncoding: true
+  enableDefaultResponseHeaders: true
+  enableDefaultResponseStatus: true
+
+spring:
+  datasource:
+    url: 'jdbc:postgresql://db:5432/hapi'
+    username: admin
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+      hibernate.search.enabled: false
+
+

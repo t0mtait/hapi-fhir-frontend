@@ -1,95 +1,129 @@
-# Stack Tracker (HAPI FHIR Frontend)
+# Stack Tracker (HAPI FHIR Frontend) 💊🚀
 
-A Next.js app for authenticated management of FHIR medication data. Users sign in with Auth0, are mirrored into PostgreSQL and HAPI FHIR, and can browse medications, add them to a personal medication stack (creates MedicationStatements), or create/delete medications. The repo now ships with Docker Compose for a one-command spin-up of the entire stack (web + HAPI FHIR + Postgres).
+A polished Next.js application for authenticated FHIR medication management. Users sign in with Auth0, are mirrored into PostgreSQL and HAPI FHIR (Patient resources), can browse Medications, add them to a personal medication stack (MedicationStatements), and create/delete resources. The repo ships with Docker Compose for a one-command spin-up of the full stack (web + HAPI FHIR + Postgres).
+
+## Table of Contents
+- [Stack Tracker (HAPI FHIR Frontend) 💊🚀](#stack-tracker-hapi-fhir-frontend-)
+- [Overview](#overview)
+- [Architecture & Containers](#architecture--containers)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Environment Variables](#environment-variables)
+- [Run with Docker Compose (recommended)](#run-with-docker-compose-recommended)
+- [Local Development (no containers)](#local-development-no-containers)
+- [App Anatomy](#app-anatomy)
+- [API Surface](#api-surface)
+- [Auth, Roles, and Sync Flow](#auth-roles-and-sync-flow)
+- [Troubleshooting](#troubleshooting)
+- [Scripts](#scripts)
+- [License](#license)
+
+## Overview
+
+- 🔐 Auth0 login; the app refuses to run without the required Auth0 keys and shows a friendly setup screen.
+- 🗄️ Authenticated users are persisted to Postgres and mirrored as FHIR Patients.
+- 💊 Medications fetched from HAPI FHIR; users can delete or add them to their personal stack (MedicationStatements tied to their Patient).
+- 🌗 Modern UI with Flowbite React and Tailwind CSS 4 (dark/light ready).
+- 🐳 Dockerized: Next.js app (Node 22), HAPI FHIR R4 server, and Postgres configured via Compose.
+
+## Architecture & Containers
+
+- **web**: Next.js 15 app built into a standalone server (`node server.js`) from the multi-stage Dockerfile (base image `node:22-alpine`).
+- **fhir**: HAPI FHIR R4 server (`hapiproject/hapi:latest`) using the bundled `application.yml`; exposed at http://localhost:8080/fhir.
+- **db**: PostgreSQL 18 with data persisted to `./hapi.postgres` (bind-mounted). Credentials default to `admin/admin`, database `hapi`.
+- Networking: services share the default compose network; `FHIR_BASE_URL` inside the web container uses `http://fhir:8080/fhir`, while host access uses http://localhost:8080/fhir.
 
 ## Features
 
-- Auth0 sign-in with automatic user sync into PostgreSQL and a corresponding FHIR Patient
-- Medication browser (pulls Medications from HAPI FHIR) with delete and “Add to Stack” actions
-- Medication stack on the dashboard (MedicationStatements linked to the logged-in patient)
-- Admin-only user table (guarded via stored `roles` array) and resource creation UI
-- Dark/light ready UI built with Flowbite React + Tailwind CSS 4
-- Dockerized stack: Next.js app, HAPI FHIR server, and Postgres in one compose file
+- 🔑 Auth0 sign-in with automatic user sync into PostgreSQL and a corresponding FHIR Patient
+- 📚 Medication browser (FHIR `Medication`) with delete and “Add to Stack” actions
+- 🧺 Medication stack (FHIR `MedicationStatement`) linked to the logged-in patient
+- 🛠️ Admin-only user table (guarded via stored `roles` array) and Medication creation UI
+- 🌓 Dark/light UI via Flowbite React + Tailwind CSS 4
+- 🐳 One-command containerized stack: web + HAPI FHIR + Postgres
 
 ## Tech Stack
 
 - Next.js 15 (App Router) • React 19 • TypeScript 5
 - Auth0 SPA SDK
-- PostgreSQL via `pg`
-- HAPI FHIR R4 server (hapiproject/hapi) with Postgres backing store
+- PostgreSQL + `pg` client
+- HAPI FHIR R4 (`hapiproject/hapi`) backed by Postgres
 - Tailwind CSS 4 + Flowbite React
-- ESLint + Prettier
+- ESLint 9 + Prettier 3
+- Docker / Docker Compose
 
-## Prerequisites
+## Environment Variables
 
-- Node.js 18+ (for local dev)
-- Docker + Docker Compose (recommended path)
-- Auth0 application configured for SPA
+Create `.env.local` in the repo root. Suggested defaults for Compose networking:
+```
+NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
+NEXT_PUBLIC_AUTH0_CLIENT_ID=your-client-id
+
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=hapi
+DB_USER=admin
+DB_PASSWORD=admin
+
+FHIR_BASE_URL=http://fhir:8080/fhir
+```
 
 ## Run with Docker Compose (recommended)
 
-1. Create `.env.local` in the repo root. For the compose network, these defaults work:
-   ```bash
-   NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
-   NEXT_PUBLIC_AUTH0_CLIENT_ID=your-client-id
+1) `docker compose up --build`
+2) App: http://localhost:3000
+3) HAPI FHIR: http://localhost:8080/fhir
+4) Postgres: localhost:5432 (admin/admin, db `hapi`). Data persists under `hapi.postgres/`.
 
-   DB_HOST=db
-   DB_PORT=5432
-   DB_NAME=hapi
-   DB_USER=admin
-   DB_PASSWORD=admin
+## Local Development (no containers)
 
-   FHIR_BASE_URL=http://fhir:8080/fhir
-   ```
-2. Start everything: `docker compose up --build`
-3. Open http://localhost:3000 and log in. HAPI FHIR is exposed on http://localhost:8080/fhir and Postgres on localhost:5432 (credentials above) if you want to inspect data.
-
-## Local Development (without containers)
-
-1. Install deps: `npm install`
-2. Create `.env.local` using your local services, e.g.:
-   ```bash
-   NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
-   NEXT_PUBLIC_AUTH0_CLIENT_ID=your-client-id
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=hapi
-   DB_USER=admin
-   DB_PASSWORD=admin
-   FHIR_BASE_URL=http://localhost:8080/fhir
-   ```
-3. Run dev server: `npm run dev`
-4. Production build: `npm run build` then `npm start`
+1) `npm install`
+2) `.env.local` for local services, e.g.:
+```
+NEXT_PUBLIC_AUTH0_DOMAIN=your-domain.auth0.com
+NEXT_PUBLIC_AUTH0_CLIENT_ID=your-client-id
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=hapi
+DB_USER=admin
+DB_PASSWORD=admin
+FHIR_BASE_URL=http://localhost:8080/fhir
+```
+3) Dev server: `npm run dev`
+4) Production build: `npm run build` then `npm start`
 
 ## App Anatomy
 
-- Dashboard: shows welcome, cards for Users/Resources/Create (admin-gated), and the medication stack table
-- Resources: lists Medications from FHIR with view/delete/add-to-stack actions
-- Create Resource: simple Medication creator that posts to FHIR
-- Users: admin view of `app_user` records (email filter is supported via `?email=`)
-- Stack: renders MedicationStatements for the logged-in patient
+- **Home**: redirects authenticated users to the dashboard.
+- **Dashboard**: welcome banner, admin-gated cards, and the medication stack table (MedicationStatements).
+- **Resources**: lists Medications with view/delete/add-to-stack actions.
+- **Create Resource**: creates Medications (or any FHIR resource) via POST to FHIR.
+- **Users**: admin view of `app_user` records; supports `?email=` filter.
+- **Stack**: renders MedicationStatements tied to the logged-in patient.
 
 ## API Surface
 
-- `GET /api/users` — list users; `?email=` filters by email and returns count
-- `POST /api/users` — creates a user, also creates a FHIR Patient; expects `username`, `email`, `auth0_id`, optional `roles`, `profile_info`
-- `POST /api/users/sync` — invoked by Auth0 login flow; upserts user and Patient with default roles `['user']`
-- `GET /api/resources` — fetches Medications (FHIR `Medication?_count=50`)
+- `GET /api/users` — list users; `?email=` filters by email
+- `POST /api/users` — create user and FHIR Patient; expects `username`, `email`, `auth0_id`, optional `roles`, `profile_info`
+- `POST /api/users/sync` — Auth0-triggered upsert; default roles `['user']`
+- `GET /api/resources` — fetch Medications (`Medication?_count=50`)
 - `POST /api/createresource` — create any FHIR resource; body must include `resourceType`
 - `DELETE /api/deleteresource` — delete FHIR resource; body `{ resourceType, id }`
-- `GET /api/medicationstatement` — list MedicationStatements (user stack view)
-- `POST /api/stack` — create a MedicationStatement tied to the current user (looks up `fhir_patient_id` via email header and references the selected Medication)
+- `GET /api/medicationstatement` — list MedicationStatements
+- `POST /api/stack` — create MedicationStatement for the current user (looks up `fhir_patient_id` via email header and references the selected Medication)
 
-## Notes on Roles and Auth
+## Auth, Roles, and Sync Flow
 
-- Auth0 SPA SDK manages login; environment keys are required or the app renders a helpful setup screen
-- Admin-only UI depends on `roles` stored in `app_user`; the admin card appears when `roles` includes `admin`
+1. User logs in via Auth0 (SPA SDK).
+2. `useUserSync` fires `POST /api/users/sync` with Auth0 profile → upsert in Postgres.
+3. A FHIR Patient is created (or reused) for the user; ID stored as `fhir_patient_id`.
+4. UI checks `roles` from `app_user`; showing admin-only cards when `roles` includes `admin`.
 
 ## Troubleshooting
 
-- Missing Auth0 config: ensure `NEXT_PUBLIC_AUTH0_DOMAIN` and `NEXT_PUBLIC_AUTH0_CLIENT_ID` exist in `.env.local` and restart
-- FHIR errors: confirm `FHIR_BASE_URL` matches the running server (compose uses `http://fhir:8080/fhir`)
-- DB errors: verify Postgres is reachable with the same host/port/credentials as `.env.local`; in compose the service is `db`
+- 🔑 Auth0: ensure `NEXT_PUBLIC_AUTH0_DOMAIN` and `NEXT_PUBLIC_AUTH0_CLIENT_ID` exist; restart after changes.
+- 🩺 FHIR: verify `FHIR_BASE_URL` (compose uses `http://fhir:8080/fhir`).
+- 🗄️ DB: confirm Postgres reachable with the same credentials; in compose the host is `db`.
 
 ## Scripts
 
